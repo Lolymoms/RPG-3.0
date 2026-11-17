@@ -1,5 +1,6 @@
 import pygame
 from sys import exit
+from math import sin
 
 # Initialization
 pygame.init()
@@ -9,6 +10,10 @@ clock = pygame.time.Clock()
 pygame.display.set_caption('Python RPG')
 
 # Main menu 
+# Background
+original_main_menu_background = pygame.image.load('Assets/Images/main_menu_background.png').convert()
+main_menu_background = pygame.transform.scale(original_main_menu_background, (screen.get_size()[0] + 100, screen.get_size()[1] + 100))
+main_menu_background_rectangle = main_menu_background.get_rect(center = (screen_rectangle.center))
 # Font loading
 title_text_font = pygame.font.Font('Assets/Fonts/title_font.ttf', 150)
 main_menu_font = pygame.font.Font('Assets/Fonts/title_font.ttf', 100)
@@ -30,10 +35,6 @@ exit_game_text_rectangle = exit_game_text_surface.get_rect(center = (screen_rect
 text_reading_rectangle = pygame.Rect(0, 0, 400, 100)
 text_reading_rectangle.center = (start_game_text_rectangle.center)
 
-# original_fish = pygame.image.load('Images/fish/fish_1.png').convert_alpha()
-# fish = pygame.transform.scale_by(original_fish, 0.04)
-# fish_rectangle = fish.get_rect(center = (45, 45))
-
 game_state = "Main menu"
 main_menu_selection = 1
 main_menu_change = False
@@ -41,12 +42,12 @@ main_menu_action = False
 
 # Main gameplay loop
 while game_state == 'Main menu':
+    # Main event loop
     for event in pygame.event.get():
-        #if the user clicks the x, quits the program
+        # If the player clicks the X on a window, closes the program
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
-        #if the user presses the space key, quits the program (placeholder)
         if event.type == pygame.KEYDOWN:    
             if event.key == pygame.K_w:
                 main_menu_selection -= 1
@@ -56,22 +57,27 @@ while game_state == 'Main menu':
                 main_menu_change = True
             elif event.key == pygame.K_RETURN:
                 main_menu_action = True
+            # If the user presses escape, quits the game
             elif event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 exit()
 
+    # If the player presses w or s, moves the reading box
     if main_menu_change:
         main_menu_change = False
+        # If the player goes further than the amount of elements, wraps around to the bottom/top
         if main_menu_selection > 3:
             main_menu_selection = 1
         elif main_menu_selection < 1:
             main_menu_selection = 3
+        # Moves the reading box
         if main_menu_selection == 1:
             text_reading_rectangle.center = (start_game_text_rectangle.center)
         elif main_menu_selection == 2:
             text_reading_rectangle.center = (load_game_text_rectangle.center)
         elif main_menu_selection == 3:
             text_reading_rectangle.center = (exit_game_text_rectangle.center)
+    # If the player presses enter, performs the corresponding action
     if main_menu_action:
         if main_menu_selection == 1:
             game_state = "Game start"
@@ -82,12 +88,19 @@ while game_state == 'Main menu':
             exit()
 
     # Draws main menu elements
-    screen.fill((7, 4, 66))
+    # Moves the background slightly
+    offset_x = (sin(pygame.time.get_ticks() / 1400) * 50)
+    offset_y = (sin(pygame.time.get_ticks() / 1300) * 50)
+    main_menu_background_rectangle.centerx = (screen_rectangle.centerx + offset_x)
+    main_menu_background_rectangle.centery = (screen_rectangle.centery + offset_y)
+    screen.blit(main_menu_background, main_menu_background_rectangle)
+    
     screen.blit(title_text_surface, title_text_rectangle)
     pygame.draw.rect(screen, (0, 0, 0), text_reading_rectangle)
     screen.blit(start_game_text_surface, start_game_text_rectangle)
     screen.blit(load_game_text_surface, load_game_text_rectangle)
     screen.blit(exit_game_text_surface, exit_game_text_rectangle)
 
+    # Updates the screen and limits FPS to 60
     pygame.display.update()
     clock.tick(60)
