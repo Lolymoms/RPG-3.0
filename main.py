@@ -35,6 +35,11 @@ exit_game_text_rectangle = exit_game_text_surface.get_rect(center = (screen_rect
 text_reading_rectangle = pygame.Rect(0, 0, 400, 100)
 text_reading_rectangle.center = (start_game_text_rectangle.center)
 
+# Start game menu assets
+# Intro text
+start_game_menu_text_surface = main_menu_font.render('Welcome adventurer! Would you like a tutorial?', True, 'White')
+start_game_menu_text_rectangle = start_game_menu_text_surface.get_rect(center = (screen_rectangle.centerx, (screen_rectangle.centery)))
+
 # Helper functions
 def main_menu(main_menu_change):
     global main_menu_selection
@@ -80,7 +85,14 @@ def main_menu(main_menu_change):
     return "Main menu"
 
 def game_start():
-    pass
+    # Moves the background slightly
+    offset_x = (sin(pygame.time.get_ticks() / 1400) * 50)
+    offset_y = (cos(pygame.time.get_ticks() / 1300) * 50)
+    main_menu_background_rectangle.centerx = (screen_rectangle.centerx + offset_x)
+    main_menu_background_rectangle.centery = (screen_rectangle.centery + offset_y)
+    screen.blit(main_menu_background, main_menu_background_rectangle)
+
+    screen.blit(start_game_menu_text_surface, start_game_menu_text_rectangle)
 
 game_state = "Main menu"
 main_menu_selection = 1
@@ -113,6 +125,8 @@ while True:
 
     if game_state == 'Main menu':
         game_state = main_menu(main_menu_change)
+    elif game_state == 'Game start':
+        game_start()
     else:
         pygame.quit()
         exit()
