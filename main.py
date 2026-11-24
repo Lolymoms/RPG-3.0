@@ -1,19 +1,15 @@
 import pygame
+from Systems.game_data import initialize_game
+
+initialize_game()
+
+from Systems.game_data import screen, screen_rectangle, clock, main_menu_background
+from Systems.display_systems import display_background
 from sys import exit
 from math import sin, cos
-
-# Initialization
-pygame.init()
-screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-screen_rectangle = screen.get_rect()
-clock = pygame.time.Clock()
-pygame.display.set_caption('Python RPG')
+from Player_init import game_start, load_game
 
 # Main menu assets
-# Background
-original_main_menu_background = pygame.image.load('Assets/Images/main_menu_background.png').convert()
-main_menu_background = pygame.transform.scale(original_main_menu_background, (screen.get_size()[0] + 100, screen.get_size()[1] + 100))
-main_menu_background_rectangle = main_menu_background.get_rect(center = (screen_rectangle.center))
 # Font loading
 title_text_font = pygame.font.Font('Assets/Fonts/title_font.ttf', 150)
 main_menu_font = pygame.font.Font('Assets/Fonts/title_font.ttf', 100)
@@ -35,81 +31,20 @@ exit_game_text_rectangle = exit_game_text_surface.get_rect(center = (screen_rect
 text_reading_rectangle = pygame.Rect(0, 0, 400, 100)
 text_reading_rectangle.center = (start_game_text_rectangle.center)
 
-# Start game menu assets
-# Intro text
-start_game_menu_text_surface = main_menu_font.render('Welcome adventurer! Would you like a tutorial?', True, 'White')
-start_game_menu_text_rectangle = start_game_menu_text_surface.get_rect(center = (screen_rectangle.centerx, (screen_rectangle.centery)))
-
-# Helper functions
-def main_menu(main_menu_change):
-    global main_menu_selection
-    # If the player presses w or s, moves the reading box
-    if main_menu_change:
-        main_menu_change = False
-        # If the player goes further than the amount of elements, wraps around to the bottom/top
-        if main_menu_selection > 3:
-            main_menu_selection = 1
-        elif main_menu_selection < 1:
-            main_menu_selection = 3
-        # Moves the reading box
-        if main_menu_selection == 1:
-            text_reading_rectangle.center = (start_game_text_rectangle.center)
-        elif main_menu_selection == 2:
-            text_reading_rectangle.center = (load_game_text_rectangle.center)
-        elif main_menu_selection == 3:
-            text_reading_rectangle.center = (exit_game_text_rectangle.center)
-    # If the player presses enter, performs the corresponding action
-    if main_menu_action:
-        if main_menu_selection == 1:
-            return "Game start"
-        elif main_menu_selection == 2: 
-            return "Load game"
-        elif main_menu_selection == 3:
-            pygame.quit()
-            exit()
-
-    # Draws main menu elements
-    # Moves the background slightly
-    offset_x = (sin(pygame.time.get_ticks() / 1400) * 50)
-    offset_y = (cos(pygame.time.get_ticks() / 1300) * 50)
-    main_menu_background_rectangle.centerx = (screen_rectangle.centerx + offset_x)
-    main_menu_background_rectangle.centery = (screen_rectangle.centery + offset_y)
-    screen.blit(main_menu_background, main_menu_background_rectangle)
-    
-    screen.blit(title_text_surface, title_text_rectangle)
-    pygame.draw.rect(screen, (0, 0, 0), text_reading_rectangle)
-    screen.blit(start_game_text_surface, start_game_text_rectangle)
-    screen.blit(load_game_text_surface, load_game_text_rectangle)
-    screen.blit(exit_game_text_surface, exit_game_text_rectangle)
-
-    return "Main menu"
-
-def game_start():
-    # Moves the background slightly
-    offset_x = (sin(pygame.time.get_ticks() / 1400) * 50)
-    offset_y = (cos(pygame.time.get_ticks() / 1300) * 50)
-    main_menu_background_rectangle.centerx = (screen_rectangle.centerx + offset_x)
-    main_menu_background_rectangle.centery = (screen_rectangle.centery + offset_y)
-    screen.blit(main_menu_background, main_menu_background_rectangle)
-
-    screen.blit(start_game_menu_text_surface, start_game_menu_text_rectangle)
-
-game_state = "Main menu"
-main_menu_selection = 1
-main_menu_change = False
-main_menu_action = False
-
-# Main gameplay loop
-while True:
-    # Main event loop
-    for event in pygame.event.get():
-        # If the player clicks the X on a window, closes the program
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-        if event.type == pygame.KEYDOWN:
-            #moves the reading box/selects the chosen action within the main menu
-            if game_state == 'Main menu':
+# Game states
+def main_menu():
+    main_menu_selection = 1
+    main_menu_change = False
+    main_menu_action = False
+    while True:
+        # Main event loop
+        for event in pygame.event.get():
+            # If the player clicks the X on a window, closes the program
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                #moves the reading box/selects the chosen action within the main menu
                 if event.key == pygame.K_w:
                     main_menu_selection -= 1
                     main_menu_change = True
@@ -118,19 +53,65 @@ while True:
                     main_menu_change = True
                 elif event.key == pygame.K_RETURN:
                     main_menu_action = True
-            # If the user presses escape, quits the game
-            elif event.key == pygame.K_ESCAPE:
+                # If the user presses escape, quits the game
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    exit()
+
+        if main_menu_change:
+            main_menu_change = False
+            # If the player goes further than the amount of elements, wraps around to the bottom/top
+            if main_menu_selection > 3:
+                main_menu_selection = 1
+            elif main_menu_selection < 1:
+                main_menu_selection = 3
+            # Moves the reading box
+            if main_menu_selection == 1:
+                text_reading_rectangle.center = (start_game_text_rectangle.center)
+            elif main_menu_selection == 2:
+                text_reading_rectangle.center = (load_game_text_rectangle.center)
+            elif main_menu_selection == 3:
+                text_reading_rectangle.center = (exit_game_text_rectangle.center)
+        # If the player presses enter, performs the corresponding action
+        if main_menu_action:
+            if main_menu_selection == 1:
+                return ("Game start", "Init")
+            elif main_menu_selection == 2: 
+                return ("Load game", "None")
+            elif main_menu_selection == 3:
                 pygame.quit()
                 exit()
 
-    if game_state == 'Main menu':
-        game_state = main_menu(main_menu_change)
-    elif game_state == 'Game start':
-        game_start()
-    else:
-        pygame.quit()
-        exit()
+        # Draws main menu elements
+        display_background(main_menu_background, True)
 
-    # Updates the screen and limits FPS to 60
-    pygame.display.update()
-    clock.tick(60)
+        screen.blit(title_text_surface, title_text_rectangle)
+        pygame.draw.rect(screen, (0, 0, 0), text_reading_rectangle)
+        screen.blit(start_game_text_surface, start_game_text_rectangle)
+        screen.blit(load_game_text_surface, load_game_text_rectangle)
+        screen.blit(exit_game_text_surface, exit_game_text_rectangle)
+
+
+        # Updates the screen and limits FPS to 60
+        pygame.display.update()
+        clock.tick(60)
+
+game_state = "Main menu"
+substate = 'None'
+
+game_states = {
+    'Main menu' : {
+        'None' : main_menu
+    },
+    'Game start' : {
+        'Init' : game_start.game_start,
+        'Tutorial' : game_start.tutorial,
+        'Player init' : game_start.player_initialization
+    },
+    'Load game' : {
+        'None' : load_game.load_game
+    }
+}
+
+while True:
+    game_state, substate = game_states[game_state][substate]()
